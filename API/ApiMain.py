@@ -18,8 +18,8 @@ from keras.models import Model, load_model
 import API
 from API.ProgramXml import XMLReader
 
-stat_defaults = {"xml_file": "../API-metadata.xml",
-                 "metadata_format": "../metadata-format.xml"}
+stat_defaults = {"xml_file": "../XML/API-metadata.xml",
+                 "metadata_format": "../XML/metadata-format.xml"}
 
 
 class DataProcessor:
