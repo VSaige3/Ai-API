@@ -16,6 +16,10 @@ from keras.models import Model, load_model
 # format, rows included, cols included, identification column and row
 # turn that into a 2D array with the minimal list of values and names
 import API
+from API.ProgramXml import XMLReader
+
+stat_defaults = {"xml_file": "../API-metadata.xml",
+                 "metadata_format": "../metadata-format.xml"}
 
 
 class DataProcessor:
@@ -91,14 +95,20 @@ class DataProcessor:
 
     _dtypes = ["econ", "demo", "geo", "viral", "y"]
 
-    def __init__(self, xml_file: Union[str, None] = "../API-metadata.xml",
-                 metadata_format: Union[str, None] = "../metadata-format.xml"):
-        if not xml_file or not metadata_format:
-            pass
-        else:
-            self.xml_file = xml_file
-            self.metadata_format = metadata_format
-            self.load(xml_file, metadata_format)
+    def __init__(self, xml_file: Union[str, None] = None,
+                 metadata_format: Union[str, None] = None,
+                 load=True):
+        if not load:
+            return
+
+        if not xml_file:
+            xml_file = stat_defaults["xml_file"]
+        if not metadata_format:
+            metadata_format = stat_defaults["metadata_format"]
+
+        self.xml_file = xml_file
+        self.metadata_format = metadata_format
+        self.load(xml_file, metadata_format)
 
     def save(self):
         DataProcessor.save_processor(self, self.xml_file, self.metadata_format)
@@ -140,67 +150,35 @@ class DataProcessor:
         #             print("no sub")
         #             return None
 
-        def get_vals(data: Union[ElementTree.ElementTree, ElementTree.Element],
-                     fmat: Union[ElementTree.ElementTree, ElementTree.Element],
-                     names: Union[str, List[str]]) -> List[Union[ElementTree.Element, str]]:
-            # go through to find matching stuff
-            if isinstance(names, str):
-                names = [names]
-            rets = []
-
-            format_i = fmat.iter()
-            data_i = data.iter()
-            print(names)
-            z = zip(format_i, data_i)
-            for x in z:
-                # print(x.tag)
-                # f = match(data, x.tag)
-                # if f:
-                #     print(f"{x.tag}, {f.tag}!")
-
-                if x[0].text in names:
-                    # names.remove(x[0].text)
-                    #     rets.append(*get_vals(x, f, names))
-                    a = x[1].text
-                    print("adding text {}".format(a))
-                elif x[0].tag in names:
-                    # names.remove(x[0].tag)
-                    #     rets.append(*get_vals(x, f, names))
-                    a = x[1]
-                    print("adding name {}".format(a))
-                else:
-                    print("{} not in {}".format(x, names))
-                    a = None
-                if a is not None:
-                    rets.append(a)
-            return rets
-
-        vals = get_vals(md, fmat, ["(METADATA_DPATH)", "(FILEDATA_DPATH)", "(DBMETA_PATH)", "settings", "databases"])
-        dp = DataProcessor(None, None)
-        print(vals)
+        vals = XMLReader.get_vals(md, fmat,
+                                  ["(METADATA_DPATH)", "(FILEDATA_DPATH)", "(DBMETA_PATH)", "settings", "databases"])
+        dp = DataProcessor(load=False)
         dp.defaults.update({"metadata_path": vals[0]})
         dp.defaults.update({"filedata_path": vals[1]})
         dp.defaults.update({"db_metadata_path": vals[2]})
-        i = 3
-        for x in vals[3]:
-            if isinstance(x, str):
-                i = i + 1  # add to paths
-            else:
-                print("continue")
-                continue
-        settings = vals[4].findall("setting")
-        print(settings)
-        for s in settings:
+
+        for x in vals[3].findall("database"):
+            dp.add_database(x.attrib["path"])
+
+        for x in vals[3].findall("dataset"):
+            dp.add_dataset(x.attrib["path"])
+
+        print(vals)
+        _settings = vals[4].findall("setting")
+        print(_settings)
+        for s in _settings:
             dp.settings.update({s.attrib['name']: s.attrib['value']})
+
         return dp
 
     @staticmethod
     def save_processor(data_collecter, filepath, format):
         assert isinstance(data_collecter, DataProcessor)
         xml_proto = ElementTree.TreeBuilder()
+        # TODO: build tree from format
 
     @staticmethod
-    def _database_formatted(database_path, dbmetadata="db_data.json") -> (bool, BaseException):
+    def _database_formatted(database_path, dbmetadata=None) -> (bool, BaseException):
         """
         check if database is formatted correctly
 
@@ -208,12 +186,18 @@ class DataProcessor:
         :param dbmetadata: the filename of the database metadata file
         :return: a boolean representing whether it is formatted, and an exception representing why it is not.
         """
+
+        if not dbmetadata:
+            dbmetadata = XMLReader.get_vals(stat_defaults["xml_file"],
+                                            stat_defaults["metadata_format"],
+                                            ["(DBMETA_PATH)"])[0]
+
         if not os.path.isdir(database_path):
             return False, NotADirectoryError("database path {} is not a directory".format(database_path))
-        if not os.path.isfile(dbmetadata):
-            return False, FileNotFoundError("could not find file {}".format(dbmetadata))
+        if not os.path.isfile(database_path + dbmetadata):
+            return False, FileNotFoundError("could not find file {}".format(database_path + dbmetadata))
 
-        return True
+        return True, None
 
     def add_database(self, path, dbmetadata=None):
         """
@@ -247,12 +231,13 @@ class DataProcessor:
         if not os.path.isdir(path):
             raise NotADirectoryError("{} is not a folder".format(path))
 
+        # add datasets
         dbdata = json.load(open("{}{}".format(path, dbmetadata)))
-        for dset in dbdata:
+        for name, dset in dbdata.items():
             dpath = path + dset["path"]
             if os.path.exists(dpath):
                 if os.path.isdir(dpath):
-                    # just add each part as a
+                    # just add each part as a pair
                     self.add_dataset(dpath, dset["variable"], dset["type"])
 
     def add_dataset(self, path, _variable=None, _type=None, _json=None):
@@ -293,7 +278,7 @@ class DataProcessor:
                 self.add_database(osp[:-1])
 
     def collect_all(self):
-        pass # TODO: collect all the data and get the settings
+        pass  # TODO: collect all the data and get the settings
 
     @staticmethod
     def is2DList(matrix_list) -> bool:
@@ -366,7 +351,7 @@ class DataProcessor:
         print("columns labeled:\n {}\n rows labeled:\n {}".format(col_lbls, row_lbls))
 
         # only use rows in rows_used
-        ret: list = []
+        ret: list
         dat_range = meta_data['data_range']
         # confine to just data range
         print(np.array(read_arr).shape)
@@ -381,22 +366,22 @@ class DataProcessor:
         # select rows
         # ret = [x if (i + dat_range[0]) in meta_data['rows_used'] else None for i, x in enumerate(ret)]
         ret = [x if i - 2 in meta_data['rows_used'] else None for i, x in enumerate(ret)]
-        [ret.remove(None) for x in range(ret.count(None))]
+        [ret.remove(None) for _ in range(ret.count(None))]
         print(np.array(ret).shape)
 
         # select columns
         # ret = [[x if (i + dat_range[1]) in meta_data['cols_used'] else None for i, x in enumerate(row)] for row in ret]
         ret = [[x if i + 1 in meta_data['cols_used'] else None for i, x in enumerate(row)] for row in ret]
-        [[row.remove(None) for x in range(row.count(None))] for row in ret]
+        [[row.remove(None) for _ in range(row.count(None))] for row in ret]
         print(np.array(ret).shape)
 
         # remove unused labels
         row_lbls = [x if i in meta_data['rows_used'] else None for i, x in enumerate(row_lbls)]
-        [row_lbls.remove(None) for x in range(row_lbls.count(None))]
+        [row_lbls.remove(None) for _ in range(row_lbls.count(None))]
         print(f"row labels: {row_lbls}")
 
         col_lbls = [x if i in meta_data['cols_used'] else None for i, x in enumerate(col_lbls)]
-        [col_lbls.remove(None) for x in range(col_lbls.count(None))]
+        [col_lbls.remove(None) for _ in range(col_lbls.count(None))]
 
         if data_filling_mode == "average" or data_filling_mode == "avg":
             ret = [DataProcessor.fill_NAN(x) for x in ret]
@@ -405,7 +390,7 @@ class DataProcessor:
 
     @staticmethod
     def get_datas(data: Union[str, bytearray, bytes, List[chr]], metadata: Union[str, dict, io.FileIO]) -> (
-    List[list], list, list):
+            List[list], list, list):
         """
         Gets data from a string of comma separated values or whatever format it is in (currently only supports CSV)
 
@@ -417,7 +402,7 @@ class DataProcessor:
 
     @staticmethod
     def get_data_from_dir(directory_path: Union[PathLike, str], data_file="{}.csv", fields="fields.json") -> (
-    List[list], list, list):
+            List[list], list, list):
         sep = "/"
         directory_path = str(directory_path)
         sep_path = directory_path.split(os.path.dirname(sep))
@@ -457,7 +442,7 @@ class DataProcessor:
     def fill_NAN(row: Union[np.ndarray, list], none_delim=0, func=lambda row: np.average(row)) -> list:
         # If somebody inputs model.predict as their function, you can use machine learning to predict
         row = [x for x in row]
-        [row.remove(none_delim) for x in range(row.count(none_delim))]
+        [row.remove(none_delim) for _ in range(row.count(none_delim))]
         fill = func(row)
         row = [fill if x == none_delim else x for x in row]
         return row
@@ -471,7 +456,6 @@ class DataProcessor:
         :return: True if it is formated, false if it is not. also returns error message (if any) and metadata
         """
         # Make sure metadata is in the correct format
-        err = ""
         metadata_dict: dict
         if isinstance(metadata, str):
             if os.path.isfile(metadata):
@@ -495,7 +479,7 @@ class DataProcessor:
         meta_keys = metadata_dict.keys()
         # Check for required fields
         if not all([x in meta_keys for x in DataProcessor._required_keys]):
-            err = ("missing required fields")
+            err = "missing required fields"
             return False, err, None
         if not metadata_dict['format'] in DataProcessor._possible_formats:
             err = ("not an acccepted 'format' tag : {}".format(metadata_dict['format']))
@@ -560,8 +544,8 @@ class DataProcessor:
 
 
 class CustomConsole:
-    Collecter: DataProcessor
-    Network: Model
+    Collecter: Union[DataProcessor, None]
+    Network: Union[Model, None]
     collected: bool = False
     running: bool = True
     delim = " "
@@ -574,7 +558,7 @@ class CustomConsole:
                 print(self.Collecter.settings["input_size"])
                 return self.Collecter.settings["input_size"]
             else:
-                return [(x,), (x,), (x,), (x,)]
+                return [(x, x), (x, x), (x, x), (x, x)]
         else:
             return [(x, x), (x, x), (x, x), (x, x)]
 
@@ -594,13 +578,15 @@ class CustomConsole:
 
     def run(self, argv):
         help_string = "ApiMain [begin|end|options|help|add|create|exit]\n" \
-                      "ApiMain begin/-b collector/-C (-d/--directory <directory>|-f <file> <json>|--default/-df) --output/-o <data output directory>\n" \
+                      "ApiMain begin/-b collector/-C (-d/--directory <directory>|-f <file> <json>|--default/-df)" \
+                      " --output/-o <data output directory>\n" \
                       "ApiMain begin/-b network/-N [train/-t|load/-l]\n" \
                       "ApiMain end/-e\n" \
                       "ApiMain options/-o \n" \
                       "\t--verbose/-v\t0 - no feedback\n\t1 - errors and warnings\n\t2 - everything\n" \
                       "\t--defaults/-d \n" \
-                      "\t\twhen called with no arguments, displays current default settings and databases, in the format\n" \
+                      "\t\twhen called with no arguments," \
+                      " displays current default settings and databases, in the format\n" \
                       "\t\t(name) | (current value(s)) | (possible values)\n" \
                       "ApiMain create [collector|network]" \
                       "\t\t alternately, one can specify ApiMain options <attribute> <new_value> to set an attribute" \
@@ -640,7 +626,6 @@ class CustomConsole:
                     arr = []
 
             self.run(arr)
-            arr = []
             return
 
         if uargs[0] in options["begin"]:
@@ -672,9 +657,6 @@ class CustomConsole:
                                 print("no place to load network from")
                         else:
                             print("unrecognized command {}".format(uargs[2]))
-
-        elif uargs[1] in options["end"]:
-            print("end")
 
         elif uargs[0] in options["create"]:
             if ulen > 1:
@@ -754,11 +736,12 @@ if __name__ == '__main__':
     settings = DataProcessor.load_processor("../API-metadata.xml", "../metadata-format.xml").settings
 
     CC = CustomConsole()
+
+    atexit.register(CC.close, [])
     print(settings)
     if "startuphook" in settings:
         CC.run(settings["startuphook"].split(CC.delim))
 
-    atexit.register(CC.close, [])
     while CC.running:
         line = input("Virus-API>> ")
         CC.run(line.split(CC.delim))
