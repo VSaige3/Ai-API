@@ -1,5 +1,8 @@
+from os import PathLike
 from xml.etree import ElementTree as ET
-from typing import Optional
+from typing import Optional, List, Union
+
+
 class XMLReader:
     _format: str
     required = [
@@ -27,5 +30,39 @@ class XMLReader:
                 # something
                 print(exp)
 
+    @staticmethod
+    def get_vals(data: Union[ET.ElementTree, ET.Element, str],
+                 fmat: Union[ET.ElementTree, ET.Element, str],
+                 names: Union[str, List[str]]) -> List[Union[ET.Element, str]]:
+        # go through to find matching stuff
+        if isinstance(names, str):
+            names = [names]
+        if isinstance(data, str):
+            data = ET.parse(data)
+        if isinstance(fmat, str):
+            fmat = ET.parse(fmat)
+        rets = []
 
+        format_i = fmat.iter()
+        data_i = data.iter()
+        z = zip(format_i, data_i)
+        for x in z:
+            # print(x.tag)
+            # f = match(data, x.tag)
+            # if f:
+            #     print(f"{x.tag}, {f.tag}!")
 
+            if x[0].text in names:
+                # names.remove(x[0].text)
+                #     rets.append(*get_vals(x, f, names))
+                a = x[1].text
+            elif x[0].tag in names:
+                # names.remove(x[0].tag)
+                #     rets.append(*get_vals(x, f, names))
+                a = x[1]
+            else:
+                a = None
+                continue
+            if a is not None:
+                rets.append(a)
+        return rets
