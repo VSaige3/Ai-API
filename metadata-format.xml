@@ -1,0 +1,13 @@
+<mdata>
+    <dpath>
+        <metadata>(METADATA_DPATH)</metadata>
+        <filedata>(FILEDATA_DPATH)</filedata>
+        <database_metadata>(DBMETA_PATH)</database_metadata>
+    </dpath>
+    <databases>
+        <database path="(DATABASE_PATH)"/>
+    </databases>
+    <settings>
+        (SETTINGS)
+    </settings>
+</mdata>
