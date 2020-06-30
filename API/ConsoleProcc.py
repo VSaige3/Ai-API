@@ -7,8 +7,8 @@ from API.ApiMain import CustomConsole
 
 
 
-if __name__ == '__main__':
-    CC = CustomConsole()
-    while CC.running==True:
-        line = input("Virus-API>> ")
-        CC.run(CC.delim.split(line))
+def update_readme():
+    rm = open("../README.md", "+")
+    s = rm.read()
+    s = s.format(__docstring__=CustomConsole.help_string)
+    rm.write(s)
