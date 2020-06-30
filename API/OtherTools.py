@@ -8,10 +8,15 @@ from API.ApiMain import CustomConsole
 
 
 def update_readme():
-    rm = open("../README.md", "+")
+    rm = open("../README.md", "r")
     s = rm.read()
+    rm.close()
+    
     s = s.format(__docstring__=CustomConsole.help_string)
+    
+    rm = open("../README.md", "w")
     rm.write(s)
+    rm.close()
 
 if __name__ == "__main__":
     uarg = sys.argv[1:]
