@@ -6,7 +6,7 @@ import sys
 
 
 def update_readme():
-    HF = open("CLine_help.txt", r)
+    HF = open("CLine_help.txt", "r")
     help_string = HF.open()
     
     rm = open("../README.md", "r")
