@@ -25,8 +25,8 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: run test file
-      run: sudo $GITHUB_WORKSPACE/API/APITest.py
+      run: sudo python $GITHUB_WORKSPACE/API/APITest.py
     
     # Runs a single command using the runners shell
     - name: Run updater
-      run: sudo $GITHUB_WORKSPACE/API/OtherTools.py -ur
+      run: sudo python $GITHUB_WORKSPACE/API/OtherTools.py -ur
