@@ -1,4 +1,5 @@
 import sys
+from API.ApiMain import CustomConsole
 # ApiMain [begin|options|help|create]
 # ApiMain --begin/-b -d/--d <directory> or -f <file> <json>
 # ApiMain --options/-o id
