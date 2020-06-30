@@ -3,9 +3,9 @@
 # IDK why but Model seems better for this.
 from keras.models import Model
 import numpy as np
-from API.ApiMain import DataProcessor
+from API.ApiMain import *
 from keras import backend as K
-from typing import Tuple, Union
+from typing import Tuple, Union, Any
 from keras.layers import Conv2D, Lambda, BatchNormalization, Activation, Dense, Dropout, MaxPooling2D
 from keras.layers import Input, UpSampling2D, Flatten, Convolution1D, MaxPooling1D
 
@@ -132,6 +132,6 @@ def create_network(o_input_sizes: Tuple[tuple, tuple, tuple, tuple], common_size
 
     return Model(inputs=[i1, i2, i3], outputs=out)
 
-def get_split_from_collecter(c: DataProcessor):
-    pass
+def get_split_from_collecter(c: Any):
+    assert isinstance(c, DataProcessor)
     #TODO: have to get size from
