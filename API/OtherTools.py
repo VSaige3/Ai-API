@@ -1,6 +1,4 @@
 import sys
-from API.ApiMain import CustomConsole
-
 # ApiMain [begin|options|help|create]
 # ApiMain --begin/-b -d/--d <directory> or -f <file> <json>
 # ApiMain --options/-o id
@@ -8,10 +6,18 @@ from API.ApiMain import CustomConsole
 
 
 def update_readme():
-    rm = open("../README.md", "+")
+    HF = open("CLine_help.txt", "r")
+    help_string = HF.open()
+    
+    rm = open("../README.md", "r")
     s = rm.read()
-    s = s.format(__docstring__=CustomConsole.help_string)
+    rm.close()
+    
+    s = s.format(__docstring__=help_string)
+    
+    rm = open("../README.md", "w")
     rm.write(s)
+    rm.close()
 
 if __name__ == "__main__":
     uarg = sys.argv[1:]

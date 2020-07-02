@@ -1,14 +1,12 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: CI1
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
   schedule:
     - cron: "0 0/2 * * *"
 
@@ -23,14 +21,15 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-
+    
+    - name: do some test idk
+      run: |
+        echo $GITHUB_WORKSPACE
+        sudo echo hello >> $GITHUB_WORKSPACE/test_file
+    
     - name: run test file
-      run: sudo $GITHUB_WORKSPACE/API/APITest.py
+      run: sudo python ../../API/APITest.py
     
     # Runs a single command using the runners shell
     - name: Run updater
-      run: sudo $GITHUB_WORKSPACE/API/OtherTools.py -ur
-      
-
-
-        
+      run: sudo python $GITHUB_WORKSPACE/API/OtherTools.py -ur

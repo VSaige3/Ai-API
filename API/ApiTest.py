@@ -1,5 +1,5 @@
-import json
-from API.ApiMain import DataProcessor
+# import json
+# from API.ApiMain import DataProcessor
 
 TEST_PATH = "C:/Users/vsaig/OneDrive/Documents/Science Fair/phys_geo/"
 TEST_FILENAME = "phys_geo.csv"
@@ -20,12 +20,15 @@ strange_test_string = \
             '}'\
         '}'
 
-with open(TEST_PATH + "fields.json") as test_fields:
-    with open(TEST_PATH + TEST_FILENAME) as test_data:
-        json_fields = json.load(test_fields)
-        dp = DataProcessor()
-        gd = dp.get_data_from_dir(TEST_PATH)
-        [print(x) for x in gd]
-        print("|\n" * 10)
-        test_2 = dp.get_data_from_dir_file_data("C:/Users/vsaig/OneDrive/Documents/Science Fair/Population Over 65/")[0]
-        print('\n'.join([str(x) for x in test_2]))
+# with open(TEST_PATH + "fields.json") as test_fields:
+#     with open(TEST_PATH + TEST_FILENAME) as test_data:
+#         json_fields = json.load(test_fields)
+#         dp = DataProcessor()
+#         gd = dp.get_data_from_dir(TEST_PATH)
+#         [print(x) for x in gd]
+#         print("|\n" * 10)
+#         test_2 = dp.get_data_from_dir_file_data("C:/Users/vsaig/OneDrive/Documents/Science Fair/Population Over 65/")[0]
+#         print('\n'.join([str(x) for x in test_2]))
+if __name__ == "__main__":
+        print("idk")
+        f = open("API/CLine_help.txt")

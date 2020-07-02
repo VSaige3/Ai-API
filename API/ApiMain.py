@@ -577,23 +577,24 @@ class CustomConsole:
         self.Collecter = None
 
     def run(self, argv):
-        help_string = "ApiMain [begin|end|options|help|add|create|exit]\n" \
-                      "ApiMain begin/-b collector/-C (-d/--directory <directory>|-f <file> <json>|--default/-df)" \
-                      " --output/-o <data output directory>\n" \
-                      "ApiMain begin/-b network/-N [train/-t|load/-l]\n" \
-                      "ApiMain end/-e\n" \
-                      "ApiMain options/-o \n" \
-                      "\t--verbose/-v\t0 - no feedback\n\t1 - errors and warnings\n\t2 - everything\n" \
-                      "\t--defaults/-d \n" \
-                      "\t\twhen called with no arguments," \
-                      " displays current default settings and databases, in the format\n" \
-                      "\t\t(name) | (current value(s)) | (possible values)\n" \
-                      "ApiMain create [collector|network]" \
-                      "\t\t alternately, one can specify ApiMain options <attribute> <new_value> to set an attribute" \
-                      "ApiMain --help/-h return this tooltip\n" \
-                      "ApiMain --add/-a -m/--metadata <filename> or --directory/-d <directory> add to default directory\n" \
-                      "ApiMain --create/-c --API-xml/-p-m <file> [<option> <value> <values/type> ...]\n" \
-                      "\t--create --default-metadata/-d-m <directory>"
+        help_string = ""
+#          help_string = "ApiMain [begin|end|options|help|add|create|exit]\n" \
+#                       "ApiMain begin/-b collector/-C (-d/--directory <directory>|-f <file> <json>|--default/-df)" \
+#                       " --output/-o <data output directory>\n" \
+#                       "ApiMain begin/-b network/-N [train/-t|load/-l]\n" \
+#                       "ApiMain end/-e\n" \
+#                       "ApiMain options/-o \n" \
+#                       "\t--verbose/-v\t0 - no feedback\n\t1 - errors and warnings\n\t2 - everything\n" \
+#                       "\t--defaults/-d \n" \
+#                       "\t\twhen called with no arguments," \
+#                       " displays current default settings and databases, in the format\n" \
+#                       "\t\t(name) | (current value(s)) | (possible values)\n" \
+#                       "ApiMain create [collector|network]" \
+#                       "\t\t alternately, one can specify ApiMain options <attribute> <new_value> to set an attribute" \
+#                       "ApiMain --help/-h return this tooltip\n" \
+#                       "ApiMain --add/-a -m/--metadata <filename> or --directory/-d <directory> add to default directory\n" \
+#                       "ApiMain --create/-c --API-xml/-p-m <file> [<option> <value> <values/type> ...]\n" \
+#                       "\t--create --default-metadata/-d-m <directory>"
         options = {
             "begin": ["begin", "-b"],
             "end": ["end", "-e"],
@@ -733,9 +734,13 @@ class CustomConsole:
 
 
 if __name__ == '__main__':
+    
     settings = DataProcessor.load_processor("../API-metadata.xml", "../metadata-format.xml").settings
 
     CC = CustomConsole()
+    
+    with open("CLine_help.txt", "r") as CH:
+        CC.help_string = CH.read()
 
     atexit.register(CC.close, [])
     print(settings)

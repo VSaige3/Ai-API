@@ -1,0 +1,15 @@
+ApiMain [begin|end|options|help|add|create|exit]
+ApiMain begin/-b collector/-C (-d/--directory <directory>|-f <file> <json>|--default/-df) --output/-o <data output directory>
+ApiMain begin/-b network/-N [train/-t|load/-l]
+ApiMain end/-e
+ApiMain options/-o 
+	--verbose/-v	0 - no feedback
+	1 - errors and warnings
+	2 - everything
+	--defaults/-d 
+		when called with no arguments, displays current default settings and databases, in the format
+		(name) | (current value(s)) | (possible values)
+ApiMain create [collector|network]		 alternately, one can specify ApiMain options <attribute> <new_value> to set an attributeApiMain --help/-h return this tooltip
+ApiMain --add/-a -m/--metadata <filename> or --directory/-d <directory> add to default directory
+ApiMain --create/-c --API-xml/-p-m <file> [<option> <value> <values/type> ...]
+	--create --default-metadata/-d-m <directory>
