@@ -1,0 +1,11 @@
+##############without version#######################
+## put dependencies here
+numpy
+typing
+csv
+json
+sys
+os
+io
+atexit
+keras
